@@ -1,0 +1,26 @@
+- hosts: all
+  become: true
+  vars_files:
+    - 'defaults/main.yml'
+  tags: nginx
+  tasks:
+    - name: Install the dependencies
+      apt:
+        name: "{{item}}"
+        state: present
+        update_cache: yes
+      with_items: ["perl", "libperl-dev", "monit", "build-essential", "python-httplib2", "zlib1g", "zlib1g-dev", "dos2unix", "libxslt-dev", "libgd-dev", "libgeoip-dev", "libwebp-dev"]
+    
+    - include: 'tasks/main.yml'
+
+    - name: Nginx | Check if nginx is available
+      uri: 
+        url: "http://localhost" 
+        status_code: 200
+
+  handlers:
+    - name: restart monit
+      service:
+        name: monit
+        state: restarted
+    - include: 'handlers/main.yml'

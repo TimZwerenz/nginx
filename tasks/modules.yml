@@ -1,43 +1,49 @@
 # file: nginx/tasks/modules.yml
 
 - include: modules/http_stub_status_module.yml
-  when: nginx_source_modules_included.http_stub_status_module is defined
+  when: nginx_source_modules_included.http_stub_status_module is defined and nginx_modules_stubStatus is undefined 
 
 - include: modules/http_ssl_module.yml
-  when: nginx_source_modules_included.http_ssl_module is defined
+  when: nginx_source_modules_included.http_ssl_module is defined and nginx_modules_openssl is undefined 
 
 - include: modules/http_gzip_static_module.yml
-  when: nginx_source_modules_included.http_gzip_static_module is defined
+  when: nginx_source_modules_included.http_gzip_static_module is defined and nginx_modules_gzipStatic is undefined 
 
 - include: modules/upload_progress_module.yml
-  when: nginx_source_modules_included.upload_progress_module is defined
+  when: nginx_source_modules_included.upload_progress_module is defined and nginx_modules_uploadProgess is undefined 
 
 - include: modules/headers_more_module.yml
-  when: nginx_source_modules_included.headers_more_module is defined
+  when: nginx_source_modules_included.headers_more_module is defined and nginx_modules_headersMore is undefined 
 
 - include: modules/http_auth_request_module.yml
-  when: nginx_source_modules_included.http_auth_request_module is defined
+  when: nginx_source_modules_included.http_auth_request_module is defined and nginx_modules_httpAuthRequest is undefined
 
 - include: modules/http_echo_module.yml
-  when: nginx_source_modules_included.http_echo_module is defined
+  when: nginx_source_modules_included.http_echo_module is defined and nginx_modules_httpEchoModule is undefined
 
 - include: modules/google_perftools_module.yml
-  when: nginx_source_modules_included.google_perftools_module is defined
+  when: nginx_source_modules_included.google_perftools_module is defined and nginx_modules_googlePerftools is undefined
 
-- include: modules/ipv6_module.yml
-  when: nginx_source_modules_included.ipv6_module is defined
+- include: modules/memc_nginx_module.yml
+  when: nginx_source_modules_included.nginx_memc_module is defined and nginx_modules_memc is undefined
 
 - include: modules/http_realip_module.yml
-  when: nginx_source_modules_included.http_realip_module is defined
+  when: nginx_source_modules_included.http_realip_module is defined and nginx_modules_httpRealIp is undefined
 
 - include: modules/http_spdy_module.yml
   when: nginx_source_modules_included.http_spdy_module is defined
 
 - include: modules/naxsi_module.yml
-  when: nginx_source_modules_included.naxsi_module is defined
+  when: nginx_source_modules_included.naxsi_module is defined and nginx_modules_naxsi is undefined
 
 - include: modules/ngx_pagespeed.yml
-  when: nginx_source_modules_included.ngx_pagespeed is defined
+  when: nginx_source_modules_included.ngx_pagespeed is defined and nginx_modules_pagespeed is undefined
 
 - include: modules/http_geoip_module.yml
-  when: nginx_source_modules_included.http_geoip_module is defined
+  when: nginx_source_modules_included.http_geoip_module is defined and nginx_modules_geoIp is undefined
+
+- include: modules/http_geoip2_module.yml
+  when: nginx_source_modules_included.http_geoip2_module is defined and nginx_modules_geoIp2 is undefined
+
+- include: modules/nginx_ultimate_bad_bot_blocker.yml
+  when: nginx_ultimate_bad_bot_blocker is defined and nginx_ultimate_bad_bot_blocker == "yes" and nginx_modules_ultimateBadBotBlocker is undefined

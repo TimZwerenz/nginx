@@ -1,0 +1,12 @@
+#!/bin/bash
+
+function installPsol {
+cd /tmp/incubator-pagespeed-ngx-{{nginx_ngx_pagespeed_version}}-stable
+bash NPS_VERSION={{nginx_ngx_pagespeed_version}}-stable
+bash NPS_RELEASE_NUMBER=${NPS_VERSION/stable/}
+psol_url=https://dl.google.com/dl/page-speed/psol/${NPS_RELEASE_NUMBER}.tar.gz
+[ -e scripts/format_binary_url.sh ] && psol_url=$(scripts/format_binary_url.sh PSOL_BINARY_URL)
+wget -O- ${psol_url} | tar -xz
+}
+
+installPsol

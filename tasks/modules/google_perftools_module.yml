@@ -5,3 +5,7 @@
   apt:
     pkg: libgoogle-perftools-dev
     state: present
+ 
+- set_fact:
+    nginx_modules_googlePerftools: true
+    cacheable: true

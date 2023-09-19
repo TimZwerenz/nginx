@@ -43,6 +43,13 @@
     make install
   when: nginx_flags.changed
 
+- name: Nginx | Copy the dynamic modules to the modules folder.
+  copy:
+    src: "{{ item }}"
+    dest: /etc/nginx/modules
+    remote_src: yes
+  with_fileglob: "/tmp/{{nginx}}-{{nginx_source_version}}/*.so"
+
 - name: Nginx | Update the symbolic link to the nginx install
   file:
     path: /usr/local/nginx/default
@@ -50,17 +57,35 @@
     state: link
     force: yes
 
-- name: Nginx | Install the upstart init script
+- name: Nginx | Create conf directory for nginx systemd files
+  file:
+    path: /etc/systemd/system/nginx.service.d/
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- name: Nginx | Install systemd nginx conf file (Bug fix https://serverfault.com/questions/1042526/open-run-nginx-pid-failed-13-permission-denied)
   template:
-    src: nginx.init.j2
-    dest: /etc/init.d/nginx
+    src: nginx_override.conf.j2
+    dest: /etc/systemd/system/nginx.service.d/override.conf
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Nginx | Install the systemd service file
+  template:
+    src: nginx.service.j2
+    dest: /etc/systemd/system/nginx.service
     owner: root
     group: root
     mode: 0755
   notify:
     - restart nginx
 
+
 - name: Nginx | Register Nginx as a service
-  service:
+  systemd:
     name: nginx
     enabled: yes
+    masked: no

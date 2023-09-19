@@ -1,17 +1,32 @@
 server {
 
-{% for k,v in item.server.iteritems() %}
-{% if k.find('location') == -1 and k != 'name' %}
+{% for k,v in item.server.items() %}
+{% if k.find('location') == -1 and k != 'name' and k != 'access_logs' %}
   {{ k }} {{ v }};
+{% endif %}
+{% if k == 'access_logs' %}
+{%for i,j in v.items() %}
+  access_log {{j}};
+{% endfor %}
 {% endif %}
 {% endfor %}
 
-{% for k,v in item.server.iteritems() if k.find('location') != -1 %}
+{% for k,v in item.server.items() if k.find('location') != -1 %}
   location {{ v.name }} {
-{% for x,y in v.iteritems() if x != 'name' %}
+{% for x,y in v.items() if x != 'name' %}
     {{ x }} {{ y }};
 {% endfor %}
   }
 {% endfor %}
+
+{% if nginx_source_modules_included.naxsi_module is defined %}
+  location /naxsi.html {
+{% if nginx_naxsi_default_error_page is defined %}
+      index {{nginx_naxsi_default_error_page}};
+{% else %}
+      index /naxsi.html;
+{% endif %}
+  }
+{% endif %}
 
 }

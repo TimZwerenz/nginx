@@ -23,6 +23,40 @@
   notify:
     - restart nginx
 
+- name: Nginx | Get installed dynamic modules
+  find:
+    paths: "{{nginx_dir}}/modules"
+    patterns: "*.so"
+  register: found_modules
+
+- name: Nginx | Configure config file for dynamic modules to be used by nginx
+  template:
+      src: nginx_modules_config.j2
+      dest: "{{nginx_dir}}/modules.conf"
+      owner: root
+      group: root
+      mode: 0644
+
+- name: Nginx | Check if Diffie-Hellman 2048 Bit key exists.
+  stat:
+    path: "{{openssl_dhparam_file}}"
+  register: openssl_dhparam_installed_check
+
+- name: Nginx | Create Diffie-Hellman 2048 Bit key
+  command: openssl dhparam -out {{openssl_dhparam_file}} 2048
+  register: openssl_dhparam_installed
+  ignore_errors: yes
+  when:  nginx_source_modules_included.openssl is defined and not openssl_dhparam_installed_check.stat.exists
+
+
+- name: Nginx | Place the SSL configuration in the conf.d folder
+  template:
+    src: ssl.conf.j2
+    dest: "{{nginx_dir}}/conf.d/ssl.conf"
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Nginx | Start Nginx the first time
   service:
     name: nginx

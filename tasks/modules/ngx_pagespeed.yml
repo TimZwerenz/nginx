@@ -5,28 +5,32 @@
   apt:
     pkg: "{{item}}"
   with_items:
-    - zlib1g-dev
     - libpcre3
     - libpcre3-dev
+    - uuid-dev
 
 - name: Nginx | Modules | Download the ngx_pagespeed source
   get_url:
-    url: "https://github.com/pagespeed/ngx_pagespeed/archive/release-{{nginx_ngx_pagespeed_version}}-beta.tar.gz"
+    url: "https://github.com/apache/incubator-pagespeed-ngx/archive/v{{nginx_ngx_pagespeed_version}}-stable.tar.gz"
     dest: "/tmp/ngx_pagespeed_module.tar.gz"
 
 - name: Nginx | Modules | Unpack the ngx_pagespeed source
-  command: tar -xvzf /tmp/ngx_pagespeed_module.tar.gz
-  args:
-    chdir: /tmp
-    creates: "/tmp/ngx_pagespeed-release-{{nginx_ngx_pagespeed_version}}-beta"
+  unarchive:
+    remote_src: yes
+    src: /tmp/ngx_pagespeed_module.tar.gz
+    dest: /tmp
 
-- name: Nginx | Modules | Download the psol source
-  get_url:
-    url: "https://dl.google.com/dl/page-speed/psol/{{nginx_ngx_pagespeed_version}}.tar.gz"
-    dest: "/tmp/ngx_pagespeed-release-{{nginx_ngx_pagespeed_version}}-beta/psol.tar.gz"
+- name: Nginx | Modules | Place install-script for pagespeed and psol
+  template:
+    src: ./modules/pagespeed_install.j2
+    dest: "/tmp/installPagespeed.sh"
 
-- name: Nginx | Modules | Unpack the psol source
-  command: "tar -xvzf /tmp/ngx_pagespeed-release-{{nginx_ngx_pagespeed_version}}-beta/psol.tar.gz"
-  args:
-    chdir: "/tmp/ngx_pagespeed-release-{{nginx_ngx_pagespeed_version}}-beta"
-    creates: "/tmp/ngx_pagespeed-release-{{nginx_ngx_pagespeed_version}}-beta/psol"
+- name: Nginx | Modules | Making install-script executable
+  file: dest=/tmp/installPagespeed.sh mode=a+x
+
+- name: Nginx | Modules | Run Pagespeed and Psol install-script
+  command: bash /tmp/installPagespeed.sh
+
+- set_fact:
+    nginx_modules_pagespeed: true
+    cacheable: true

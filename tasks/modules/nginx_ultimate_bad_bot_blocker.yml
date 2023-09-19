@@ -1,0 +1,21 @@
+- name: Nginx | Modules | Download Bot Blocker install-script
+  command: "sudo wget https://raw.githubusercontent.com/mitchellkrogza/nginx-ultimate-bad-bot-blocker/master/install-ngxblocker -O /usr/local/sbin/install-ngxblocker"
+
+- name: Nginx | Modules | Make Bat Bot Blocker installer-script executablesudo 
+  command: "chmod +x /usr/local/sbin/install-ngxblocker"
+
+- name: Nginx | Modules | Run Bat Bot Blocker install-script
+  command: chdir=/usr/local/sbin/ sudo ./install-ngxblocker -x
+
+- name: Nginx | Modules | Create Bad Bot Blocker update cron job.
+  cron:
+    name: Bad Bot Blocker update.
+    weekday: "0"
+    minute: "0"
+    hour: "1"
+    user: root
+    job: "/usr/local/sbin/update-ngxblocker"
+
+- set_fact:
+    nginx_modules_ultimateBadBotBlocker: true
+    cacheable: true

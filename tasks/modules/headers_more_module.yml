@@ -9,3 +9,7 @@
 - name: Nginx | Modules | Unpack the headers_more_module source
   command: tar -xvzf /tmp/nginx-headers-more-module-{{nginx_headers_more_version}}.tar.gz
     chdir=/tmp creates=/tmp/headers-more-nginx-module-{{nginx_headers_more_version}}
+
+- set_fact:
+    nginx_modules_headersMore: true
+    cacheable: true

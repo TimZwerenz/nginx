@@ -7,3 +7,7 @@
     owner: root
     group: root
     mode: 0644
+  
+- set_fact:
+    nginx_modules_autorizedIps: true
+    cacheable: true

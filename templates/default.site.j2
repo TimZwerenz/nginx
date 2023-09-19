@@ -1,6 +1,6 @@
 server {
   listen   80;
-  server_name  {{inventory_hostname}};
+  server_name  localhost;
 
   access_log  {{nginx_log_dir}}/default.access.log;
 
@@ -8,4 +8,8 @@ server {
     root   {{nginx_default_root}};
     index  index.html index.htm;
   }
+}
+
+server {
+    return 404;
 }

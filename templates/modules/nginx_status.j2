@@ -1,7 +1,7 @@
 include authorized_ips;
 
 server {
-  listen 8090;
+  listen 127.0.0.1:81;
   server_name _;
 
   location /nginx_status {

@@ -8,14 +8,13 @@
     creates: "/tmp/openssl-{{ openssl_version }}.tar.gz"
   when: nginx_source_modules_included.openssl is defined
 
-  #get_url:
-  #  url: "https://www.openssl.org/source/openssl-{{ openssl_version }}.tar.gz"
-  #  dest: "/tmp/openssl-{{ openssl_version }}.tar.gz"
-  #when: nginx_source_modules_included.openssl is defined
-
 - name: extract openssl source
   command: "tar -xf /tmp/openssl-{{ openssl_version }}.tar.gz"
   args:
     chdir: /tmp
     creates: "/tmp/openssl-{{ openssl_version }}"
   when: nginx_source_modules_included.openssl is defined
+
+- set_fact:
+    nginx_modules_openssl: true
+    cacheable: true

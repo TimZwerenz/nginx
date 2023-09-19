@@ -18,6 +18,12 @@
     mode: 0755
   with_items: "{{nginx_sites}}"
 
+- name: Nginx | Place Naxsi error page in root directory of each vServer
+  copy:
+    src: "files/naxsi.html"
+    dest: "{{nginx_www_dir}}/{{item.server.name}}/"
+  with_items: "{{nginx_sites}}"
+
 - name: Nginx | Enable sites
   file:
     path: "{{nginx_dir}}/sites-enabled/{{item}}"

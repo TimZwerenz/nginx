@@ -17,3 +17,7 @@
     src: "{{nginx_dir}}/sites-available/nginx_status"
     state: link
     force: yes
+
+- set_fact:
+    nginx_modules_stubStatus: true
+    cacheable: true

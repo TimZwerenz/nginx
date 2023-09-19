@@ -1,7 +1,7 @@
 # file: nginx/defaults/main.yml
 
 nginx_install_method: "source"
-nginx_source_version: "1.8.0"
+nginx_source_version: "1.22.1"
 nginx: "nginx"
 
 nginx_user: www-data
@@ -9,11 +9,20 @@ nginx_group: www-data
 nginx_uid: 33
 nginx_gid: 33
 
+# Folders and special files
 nginx_dir: "/etc/nginx"
-nginx_www_dir: "/srv/www"
+nginx_www_dir: "/var/www"
 nginx_log_dir: "/var/log/nginx"
 nginx_pid: "/var/run/nginx.pid"
+http_client_body_temp_path: "/var/lib/nginx/body"
+http_proxy_temp_path: "/var/lib/nginx/proxy"
+nginx_lock_path: "/var/lock/nginx.lock"
+http_fastcgi_temp_path: "/var/lib/nginx/fastcgi"
+openssl_dhparam_file: "/etc/ssl/dhparam_2048.pem"
 
+# Systemd configuration
+#nginx_systemd_after: ""
+#nginx_systemd_wants: ""
 
 # nginx.conf
 nginx_worker_processes: 4
@@ -46,46 +55,83 @@ nginx_enable_rate_limiting: no
 nginx_rate_limiting_zone_name: "default"
 nginx_rate_limiting_backoff: "10m"
 nginx_rate_limit: "1r/s"
+nginx_log_formats:
+  geolocationLogFormat:
+    format: '$remote_addr - $remote_user [$time_local] $status	"$geoip2_data_city_name" "$geoip2_data_country_code" ' 
+  geolocationLogFormatJson: 
+    escape: "escape=json"
+    format: '{ "remoteAddress": "$remote_addr", "remoteUser": "$remote_user", "timeLocal": "$time_local", "status": "$status", "cityName": "$geoip2_data_city_name", "countryName": "$geoip2_data_country_code" }' 
 nginx_access_logs:
   - name: "main"
     format: '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"'
     options: null
     filename: "access.log"
 
+
 # default site
 nginx_default_root: "{{nginx_www_dir}}/default"
 nginx_default_enable: yes
 
 # site inventory
-nginx_sites: []
-nginx_enabled_sites: []
+nginx_sites:
+  - server:
+      name: TestPage
+      listen: 8080
+      server_name: "localhost"
+      root: "{{nginx_www_dir}}/TestPage"
+      access_logs:
+        al1: "/var/log/nginx/testpage.access.log geolocationLogFormatJson"
+        al2: "/var/log/nginx/testpage.main.access.log main"
+      location1:
+        name: "/test"
+        index: "index.html"
+        sendfile: "on"
+        include: "{{nginx_dir}}/naxsi/naxsi.rules"
+        limit_req: "zone=defaultLimit burst=18 delay=8"
+      location2:
+        name: "/"
+        return: "404"
+  
+nginx_enabled_sites: ["TestPage"]
 nginx_disabled_sites: []
 
 # source
 nginx_source_url: "http://nginx.org/download/nginx-{{nginx_source_version}}.tar.gz"
-nginx_source_prefix: "/usr/local/nginx/nginx-{{nginx_source_version}}"
+nginx_source_prefix: "/usr/local/nginx"
 nginx_source_conf_path: "{{nginx_dir}}/nginx.conf"
-nginx_source_sbin_path: "{{nginx_source_prefix}}/sbin/nginx"
-nginx_source_default_configure_flags: "--prefix={{nginx_source_prefix}} --conf-path={{nginx_source_conf_path}} --sbin-path={{nginx_source_sbin_path}}"
+nginx_source_sbin_path: "/usr/sbin/nginx"
+nginx_source_default_configure_flags: '--prefix={{nginx_source_prefix}} --conf-path={{nginx_source_conf_path}} --sbin-path={{nginx_source_sbin_path}}  --http-client-body-temp-path={{http_client_body_temp_path}} --http-fastcgi-temp-path={{http_fastcgi_temp_path}} --http-log-path={{nginx_log_dir}}/access.log --http-proxy-temp-path={{http_proxy_temp_path}} --lock-path={{nginx_lock_path}} --pid-path={{nginx_pid}} --user={{nginx_user}} --group={{nginx_group}}'
 
 nginx_source_modules_included:
+  nginx_modules_path: "--modules-path={{nginx_dir}}/modules"
+  stream: "--with-stream=dynamic"
+  compat: "--with-compat"
+  threads: "--with-threads"
+  pcre_jit: "--with-pcre-jit"
+  http_addition_module: "--with-http_addition_module"
+  http_slice_module: "--with-http_slice_module"
+  http_xslt_module: "--with-http_xslt_module=dynamic"
   http_stub_status_module: "--with-http_stub_status_module"
   http_ssl_module: "--with-http_ssl_module"
+  stream_ssl_module: "--with-stream_ssl_module"
+  stream_ssl_preread_module: "--with-stream_ssl_preread_module"
   openssl: "--with-openssl=/tmp/openssl-{{ openssl_version }}"
+  http_gunzip_module: "--with-http_gunzip_module"
   http_gzip_static_module: "--with-http_gzip_static_module"
-  upload_progress_module: "--add-module=/tmp/nginx-upload-progress-module-{{nginx_upload_progress_version}}"
+  http_image_filter: "--with-http_image_filter_module=dynamic"
+  #upload_progress_module: "--add-module=/tmp/nginx-upload-progress-module-{{nginx_upload_progress_version}}"
   headers_more_module: "--add-module=/tmp/headers-more-nginx-module-{{nginx_headers_more_version}}"
   http_auth_request_module: "--add-module=/tmp/ngx_http_auth_request_module-{{nginx_auth_request_release}}"
   http_echo_module: "--add-module=/tmp/echo-nginx-module-{{nginx_echo_version}}"
   google_perftools_module: "--with-google_perftools_module"
-  ipv6_module: "--with-ipv6"
   http_real_ip_module: "--with-http_realip_module"
-  http_spdy_module: "--with-http_spdy_module"
+  http_v2_module: "--with-http_v2_module"
   http_perl_module: "--with-http_perl_module"
-  naxsi_module: "--add-module=/tmp/naxsi-{{nginx_naxsi_version}}/naxsi_src"
-  ngx_pagespeed: "--add-module=/tmp/ngx_pagespeed-release-{{nginx_ngx_pagespeed_version}}-beta"
+  naxsi_module: "--add-dynamic-module=/tmp/naxsi-{{nginx_naxsi_version}}/naxsi_src"
+  ngx_pagespeed: "--add-module=/tmp/incubator-pagespeed-ngx-{{nginx_ngx_pagespeed_version}}-stable"
   http_geoip_module: "--with-http_geoip_module"
-
+  http_geoip2_module: "--add-dynamic-module=/tmp/ngx_http_geoip2_module-{{nginx_geoip2_module_version}}"
+  nginx_memc_module: "--add-dynamic-module=/tmp/memc-nginx-module-{{nginx_memcache_module_version}}"
 nginx_source_modules_excluded:
   - mail_pop3_module
   - mail_imap_module
@@ -142,7 +188,7 @@ nginx_upload_progress_url: "https://github.com/masterzen/nginx-upload-progress-m
 
 
 # headers_more_module configuration
-nginx_headers_more_version: "0.261"
+nginx_headers_more_version: "0.34"
 nginx_headers_more_url: "https://github.com/agentzh/headers-more-nginx-module/archive/v{{nginx_headers_more_version}}.tar.gz"
 
 
@@ -152,22 +198,46 @@ nginx_auth_request_url: "http://mdounin.ru/hg/ngx_http_auth_request_module/archi
 
 
 # http_echo_module configuration
-nginx_echo_version: "0.58"
-nginx_echo_url: "https://github.com/agentzh/echo-nginx-module/archive/v{{nginx_echo_version}}.tar.gz"
-
+nginx_echo_version: "0.63"
+nginx_echo_url: "https://github.com/openresty/echo-nginx-module/archive/refs/tags/v{{nginx_echo_version}}.tar.gz"
 
 # http_realip_module configuration
 nginx_realip_header: "X-Forwarded-For"
 nginx_realip_addresses: ["127.0.0.1"]
 nginx_realip_real_ip_recursive: "off"
 
-
 # naxsi_module configuration
-nginx_naxsi_version: "0.53"
+nginx_naxsi_version: "1.1"
 nginx_naxsi_url: "https://github.com/nbs-system/naxsi/archive/{{nginx_naxsi_version}}.tar.gz"
+nginx_naxsi_default_error_page: "{{nginx_www_dir}}/naxsi.html"
 
 # ngx_pagespeed_module configuration
-nginx_ngx_pagespeed_version: 1.9.32.4
+nginx_ngx_pagespeed_version: 1.13.35.2
 
 # OpenSSL configuration
-openssl_version: "1.0.2h"
+openssl_version: "3.1.1"
+
+# Geoip2 configuration
+nginx_geoip2_module: "on"
+nginx_geoip2_module_version: '3.4'
+nginx_geoip2_module_source: "https://github.com/leev/ngx_http_geoip2_module/archive/refs/tags/{{nginx_geoip2_module_version}}.tar.gz"
+nginx_geoip2_maxmind_account_id: PLACE_YOUR_ID
+nginx_geoip2_maxmind_license_key: PLACE_YOUR_KEY
+nginx_geoip2_configs:
+  - "geoip2 /usr/share/GeoIP/GeoLite2-Country.mmdb {
+        auto_reload 5m;
+        $geoip2_metadata_country_build metadata build_epoch;
+        $geoip2_data_country_code default=US source=$http_x_forwarded_for country iso_code;
+        $geoip2_data_country_name source=$http_x_forwarded_for country names en;
+    }"
+  - "geoip2 /usr/share/GeoIP/GeoLite2-City.mmdb {
+        $geoip2_data_city_name source=$http_x_forwarded_for city names en;
+        $geoip2_data_time_zone source=$http_x_forwarded_for location time_zone;
+    }"
+
+# Memcache module configuration
+nginx_memcache_module_url: "https://github.com/openresty/memc-nginx-module/archive/refs/tags/v{{nginx_memcache_module_version}}.tar.gz"
+nginx_memcache_module_version: "0.19"
+
+# Nginx Ultimate Bad Bot Blocker 
+nginx_ultimate_bad_bot_blocker: "yes"

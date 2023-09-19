@@ -1,0 +1,48 @@
+- name: Nginx | Modules | Add maxmind repository.
+  apt_repository:
+    repo: 'ppa:maxmind/ppa'
+    state: present
+
+- name: Nginx | Modules | Update APT database.
+  apt:
+    update_cache: yes
+
+- name: Nginx | Modules | Download GeoIp2 Update packages.
+  apt:
+    name: "{{item}}"
+    state: present
+    update_cache: yes
+  with_items: ["geoipupdate", "libmaxminddb0", "libmaxminddb-dev", "mmdb-bin"]
+
+  # Place GeoIp key /etc/GeoIP.conf
+- name: Nginx | Modules | Place GeoIp key in /etc/GeoIP.conf .
+  template:
+    src: modules/geoip_conf.j2
+    dest: "/etc/GeoIP.conf"
+
+- name: Nginx | Modules | Create GeoIp2 update cron job.
+  cron:
+    name: GeoIP update.
+    weekday: "2"
+    minute: "0"
+    hour: "2"
+    user: root
+    job: "/usr/bin/geoipupdate"
+
+- name:  Download latest GeoIP2 Databases
+  command: "sudo geoipupdate"
+
+- name: Nginx | Modules | Download GeoIP2 module for nginx.
+  get_url:
+    url: "{{nginx_geoip2_module_source}}"
+    dest: "/tmp/geoip2_module-{{nginx_geoip2_module_version}}.tar.gz"
+
+- name: Nginx | Modules | Unpack the GeoIP2 source
+  unarchive:
+    remote_src: yes
+    src: /tmp/geoip2_module-{{nginx_geoip2_module_version}}.tar.gz
+    dest: /tmp
+
+- set_fact:
+    nginx_modules_geoIp2: true
+    cacheable: true

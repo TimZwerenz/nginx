@@ -1,0 +1,15 @@
+
+- name: Nginx | Modules | Download memcache module
+  get_url:
+    url: "{{nginx_memcache_module_url}}"
+    dest: "/tmp/memc-nginx-{{nginx_memcache_module_version}}.tar.gz"
+
+- name: Nginx | Modules | Unpack the memcache source
+  unarchive:
+    remote_src: yes
+    src: /tmp/memc-nginx-{{nginx_memcache_module_version}}.tar.gz
+    dest: /tmp
+
+- set_fact:
+    nginx_modules_memc: true
+    cacheable: true

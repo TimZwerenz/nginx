@@ -8,3 +8,7 @@
     owner: root
     group: root
     mode: 0644
+
+- set_fact:
+    nginx_modules_gzipStatic: true
+    cacheable: true
