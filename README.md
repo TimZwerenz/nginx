@@ -3,6 +3,10 @@
 Ansible role which installs and configures Nginx, from a package or from source (including a series of optional modules).
 
 
+## UPDATE :
+Searching for an ansible role which could help me setting up my webservers based on Nginx I found the original ANXS repository. As the Nginx Playbooks were outdated and did not work any more, I updated a lot of them and added some helpfull features, like BOT blocking etc.. 
+The original playbooks supported the nginx installation from source and from package managers. **I only updated the playbooks for a installation from source**. This means that Nginx and some modules are built from source, which is the reason why the installation process can take some minutes.
+
 #### Requirements & Dependencies
 
 ##### Ansible
